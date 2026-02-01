@@ -19,13 +19,16 @@ class BookingFormProvider extends ChangeNotifier {
   bool loading = false;
 
   Future<void> loadVehicles() async {
-    final rows = await _db.rawQuery("""
+    final rows = await _db.rawQuery(
+      """
       SELECT id, brand || ' ' || model AS label, type
       FROM vehicles
       WHERE status <> 'maintenance'
         AND (? IS NULL OR type = ?)
       ORDER BY brand, model
-    """, [carType, carType]);
+    """,
+      [carType, carType],
+    );
 
     vehicles = rows;
 
@@ -36,18 +39,68 @@ class BookingFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setVehicle(int? id) {
+    vehicleId = id;
+    notifyListeners();
+  }
 
-  void setVehicle(int? id) { vehicleId = id; notifyListeners(); }
   void setCarType(String? t) {
     carType = t;
-    vehicleId = null;     // clear previous selection
-    loadVehicles();       // reload with filter
+    vehicleId = null; // clear previous selection
+    loadVehicles(); // reload with filter
   }
-  void setName(String v) { fullName = v; notifyListeners(); }
-  void setEmail(String v) { email = v; notifyListeners(); }
-  void setPhone(String v) { phone = v; notifyListeners(); }
-  void setStart(DateTime d) { startDate = d; if (endDate!=null && endDate!.isBefore(d)) endDate=null; notifyListeners(); }
-  void setEnd(DateTime d) { endDate = d; notifyListeners(); }
+
+  void setName(String v) {
+    fullName = v;
+    notifyListeners();
+  }
+
+  void setEmail(String v) {
+    email = v;
+    notifyListeners();
+  }
+
+  void setPhone(String v) {
+    phone = v;
+    notifyListeners();
+  }
+
+  void setStart(DateTime d) {
+    startDate = d;
+    if (endDate != null && endDate!.isBefore(d)) endDate = null;
+    notifyListeners();
+  }
+
+  void setEnd(DateTime d) {
+    endDate = d;
+    notifyListeners();
+  }
+
+  // Validation methods
+  bool isValidEmail(String email) {
+    final trimmed = email.trim();
+    return trimmed.contains('@') &&
+        (trimmed.contains('.com') ||
+            trimmed.contains('.') && trimmed.split('.').last.length >= 2);
+  }
+
+  bool isValidPhone(String phone) {
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    return digits.length == 8;
+  }
+
+  String? getEmailError() {
+    if (email.trim().isEmpty) return 'Email is required';
+    if (!isValidEmail(email))
+      return 'Email must contain @ and a domain (e.g., user@example.com)';
+    return null;
+  }
+
+  String? getPhoneError() {
+    if (phone.trim().isEmpty) return 'Phone number is required';
+    if (!isValidPhone(phone)) return 'Phone number must be exactly 8 digits';
+    return null;
+  }
 
   int get days {
     if (startDate == null || endDate == null) return 0;
@@ -62,8 +115,8 @@ class BookingFormProvider extends ChangeNotifier {
       endDate != null &&
       !endDate!.isBefore(startDate!) &&
       fullName.trim().isNotEmpty &&
-      email.trim().isNotEmpty &&
-      phone.trim().isNotEmpty;
+      isValidEmail(email) &&
+      isValidPhone(phone);
 
   Future<bool> hasOverlap() async {
     final s = _iso(startDate!);
@@ -83,12 +136,15 @@ class BookingFormProvider extends ChangeNotifier {
 
   Future<void> submit() async {
     if (!valid) return;
-    loading = true; notifyListeners();
+    loading = true;
+    notifyListeners();
 
     await _db.transaction((txn) async {
       await txn.insert('bookings', {
         'vehicle_id': vehicleId,
         'user_name': fullName.trim(),
+        'email': email.trim(),
+        'phone': phone.trim(),
         'pickup_date': _iso(startDate!),
         'return_date': _iso(endDate!),
         'price': price,
@@ -97,11 +153,16 @@ class BookingFormProvider extends ChangeNotifier {
       });
 
       // 🔒 Business rule: ALWAYS mark vehicle as in_use after booking
-      await txn.update('vehicles', {'status': 'in_use'},
-          where: 'id = ?', whereArgs: [vehicleId]);
+      await txn.update(
+        'vehicles',
+        {'status': 'in_use'},
+        where: 'id = ?',
+        whereArgs: [vehicleId],
+      );
     });
 
-    loading = false; notifyListeners();
+    loading = false;
+    notifyListeners();
   }
 
   void reset() {
@@ -115,5 +176,5 @@ class BookingFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _iso(DateTime d) => d.toIso8601String().substring(0,10); // YYYY-MM-DD
+  String _iso(DateTime d) => d.toIso8601String().substring(0, 10); // YYYY-MM-DD
 }

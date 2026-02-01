@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../core/theme.dart';
-import '../profile/profile_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -11,13 +10,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController _mapController;
-  Set<Marker> _markers = {};
-  
-  // Mauritius center coordinates
-  static const LatLng _mauritiusCenter = LatLng(-20.3480, 57.5522);
-  
-  // Dummy vehicle locations (within Mauritius)
+  // Dummy vehicle locations
   final List<Map<String, dynamic>> _vehicles = [
     {
       'name': 'BMW (Plate: 1234 XX 19)',
@@ -39,48 +32,45 @@ class _MapScreenState extends State<MapScreen> {
     },
   ];
 
+  late GoogleMapController _mapController;
+  MapType _currentMapType = MapType.normal;
+  final Set<Marker> _markers = {};
+
   @override
   void initState() {
     super.initState();
-    _initializeMarkers();
+    _initMarkers();
   }
 
-  void _initializeMarkers() {
-    _markers = _vehicles.asMap().entries.map((entry) {
-      final idx = entry.key;
-      final vehicle = entry.value;
-      return Marker(
-        markerId: MarkerId('vehicle_$idx'),
-        position: LatLng(vehicle['lat'], vehicle['lng']),
-        infoWindow: InfoWindow(
-          title: vehicle['name'],
-          snippet: 'Status: ${vehicle['status']}',
+  void _initMarkers() {
+    for (var i = 0; i < _vehicles.length; i++) {
+      final v = _vehicles[i];
+      final id = 'vehicle_$i';
+      _markers.add(
+        Marker(
+          markerId: MarkerId(id),
+          position: LatLng(v['lat'] as double, v['lng'] as double),
+          infoWindow: InfoWindow(
+            title: v['name'] as String,
+            snippet: v['status'] as String,
+          ),
         ),
-        icon: _getMarkerIcon(vehicle['status']),
       );
-    }).toSet();
-  }
-
-  BitmapDescriptor _getMarkerIcon(String status) {
-    switch (status) {
-      case 'Available':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-      case 'In Use':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
-      case 'Maintenance':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-      default:
-        return BitmapDescriptor.defaultMarker;
     }
   }
 
-  @override
-  void dispose() {
-    _mapController.dispose();
-    super.dispose();
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
   }
 
-  @override
+  Future<void> _goToVehicle(int index) async {
+    final v = _vehicles[index];
+    final pos = LatLng(v['lat'] as double, v['lng'] as double);
+    await _mapController.animateCamera(
+      CameraUpdate.newCameraPosition(CameraPosition(target: pos, zoom: 15)),
+    );
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
@@ -109,12 +99,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.person_outline, color: Colors.white),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                    );
-                  },
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -125,19 +110,24 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // Interactive Google Map
           Expanded(
-            child: GoogleMap(
-              onMapCreated: (controller) {
-                _mapController = controller;
-              },
-              initialCameraPosition: const CameraPosition(
-                target: _mauritiusCenter,
-                zoom: 9.5,
+            child: Container(
+              color: const Color(0xFFE8F4F8),
+              child: GoogleMap(
+                onMapCreated: _onMapCreated,
+                mapType: _currentMapType,
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(
+                    _vehicles[0]['lat'] as double,
+                    _vehicles[0]['lng'] as double,
+                  ),
+                  zoom: 13,
+                ),
+                markers: _markers,
+                myLocationEnabled: false,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: true,
+                compassEnabled: true,
               ),
-              markers: _markers,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: false,
-              zoomControlsEnabled: true,
-              compassEnabled: true,
             ),
           ),
           // Vehicle list
@@ -159,7 +149,7 @@ class _MapScreenState extends State<MapScreen> {
                     itemCount: _vehicles.length,
                     itemBuilder: (_, i) {
                       final v = _vehicles[i];
-                      return _vehicleStatusCard(v['name'], v['status']);
+                      return _vehicleStatusCard(v['name'], v['status'], i);
                     },
                   ),
                 ),
@@ -171,7 +161,58 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _vehicleStatusCard(String name, String status) {
+  Widget _mapMarker(String status, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: const Icon(
+            Icons.directions_car,
+            size: 12,
+            color: Colors.white,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            status,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _legendItem(String status, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(status, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _vehicleStatusCard(String name, String status, int index) {
     Color statusColor(String s) {
       switch (s) {
         case 'Available':
@@ -185,41 +226,44 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
 
-    return Card(
-      margin: const EdgeInsets.only(right: 8),
-      child: Container(
-        width: 120,
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor(status).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: statusColor(status),
-                  fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: () => _goToVehicle(index),
+      child: Card(
+        margin: const EdgeInsets.only(right: 8),
+        child: Container(
+          width: 120,
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
-          ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor(status).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: statusColor(status),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
