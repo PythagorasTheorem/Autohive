@@ -96,41 +96,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 12),
 
               // Middle: charts
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _ChartCard(
-                      title: 'Bookings per Day',
-                      child: LineChart(
-                        dataPoints: const [5, 8, 12, 15, 18, 22, 25],
-                        title: 'Trend',
-                        lineColor: const Color(0xFF1976D2),
-                        fillColor: const Color(0xff1976d235),
+              SizedBox(
+                height: 280,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _ChartCard(
+                        title: 'Bookings per Day',
+                        child: LineChart(
+                          dataPoints: const [5, 8, 12, 15, 18, 22, 25],
+                          title: 'Trend',
+                          lineColor: const Color(0xFF1976D2),
+                          fillColor: const Color(0xff1976d235),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _ChartCard(
-                      title: 'Revenue Trend',
-                      child: LineChart(
-                        dataPoints: const [
-                          2000,
-                          2500,
-                          3200,
-                          3800,
-                          4500,
-                          5200,
-                          6000,
-                        ],
-                        title: 'Amount (\$)',
-                        lineColor: const Color(0xFF2E7D32),
-                        fillColor: const Color(0xff2e7d3235),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChartCard(
+                        title: 'Revenue Trend',
+                        child: LineChart(
+                          dataPoints: const [
+                            2000,
+                            2500,
+                            3200,
+                            3800,
+                            4500,
+                            5200,
+                            6000,
+                          ],
+                          title: 'Amount (\$)',
+                          lineColor: const Color(0xFF2E7D32),
+                          fillColor: const Color(0xff2e7d3235),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -199,10 +202,7 @@ class _PieCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(
-              icon: Icons.pie_chart,
-              title: 'Fleet Distribution',
-            ),
+            _SectionTitle(icon: Icons.pie_chart, title: 'Fleet Distribution'),
             const SizedBox(height: 8),
             SizedBox(
               height: 160,
@@ -252,14 +252,15 @@ class _ChartCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       elevation: 2,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         color: const Color(0xFFEDEDED),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _SectionTitle(icon: Icons.insights, title: title),
-            const SizedBox(height: 8),
-            child,
+            const SizedBox(height: 12),
+            Expanded(child: child),
           ],
         ),
       ),

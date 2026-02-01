@@ -208,7 +208,8 @@ class LineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
@@ -218,11 +219,10 @@ class LineChart extends StatelessWidget {
             color: Color(0xFF333333),
           ),
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 200,
+        const SizedBox(height: 12),
+        Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
             child: CustomPaint(
               painter: LineChartPainter(
                 dataPoints: dataPoints,
