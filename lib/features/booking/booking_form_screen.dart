@@ -83,14 +83,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Chips (visual only)
-            Row(
-              children: [
-                _pill('Check-in', const Color(0xFF2E7D32)),
-                const SizedBox(width: 16),
-                _pill('Check-out', const Color(0xFFC62828)),
-              ],
-            ),
+            // Chips (visual only - Check-in only)
+            Row(children: [_pill('Check-in', const Color(0xFF2E7D32))]),
             const SizedBox(height: 16),
 
             _section('Car Type'),

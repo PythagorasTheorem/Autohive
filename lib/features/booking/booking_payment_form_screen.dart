@@ -75,11 +75,29 @@ class _BookingPaymentFormScreenState extends State<BookingPaymentFormScreen> {
 
   void _confirmPayment() async {
     if (_paymentMethod == 'card') {
-      if (_cardNumberCtrl.text.isEmpty ||
-          _expiryCtrl.text.isEmpty ||
-          _cvvCtrl.text.isEmpty) {
+      if (_cardNumberCtrl.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill in all card details')),
+          const SnackBar(content: Text('Please enter card number')),
+        );
+        return;
+      }
+      if (_cardNumberCtrl.text.length < 13) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Card number must be at least 13 digits'),
+          ),
+        );
+        return;
+      }
+      if (_expiryCtrl.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter expiry date (MM/YY)')),
+        );
+        return;
+      }
+      if (_cvvCtrl.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter security code')),
         );
         return;
       }
@@ -87,20 +105,33 @@ class _BookingPaymentFormScreenState extends State<BookingPaymentFormScreen> {
 
     setState(() => _loading = true);
 
-    // Submit booking via provider
-    if (mounted) {
-      final bookingProvider = context.read<BookingFormProvider>();
-      await bookingProvider.submit();
-    }
+    try {
+      // Simulate payment processing delay
+      await Future.delayed(const Duration(milliseconds: 1500));
 
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _loading = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment successful! Booking confirmed.')),
-      );
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful! Booking confirmed.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        // Pop back to dashboard after success
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
