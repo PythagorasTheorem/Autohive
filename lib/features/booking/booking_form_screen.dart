@@ -94,7 +94,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   value: p.carType,
                   hint: const Text('Select type'),
                   isExpanded: true,
-                  items: const ['Sedan', 'SUV', 'Hatchback', 'Pickup']
+                  items: const ['Sedan', 'SUV', 'Hatchback']
                       .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                       .toList(),
                   onChanged: p.setCarType,
