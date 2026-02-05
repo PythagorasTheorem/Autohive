@@ -253,9 +253,24 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           row('Fuel type', v.fuelType ?? '—'),
           row('Mileage', _formatKm(v.mileageKm)),
           row('Seats', v.seats?.toString() ?? '—'),
+          row('Next Service Date', _formatServiceDate(v.nextServiceDate)),
         ],
       ),
     );
+  }
+
+  String _formatServiceDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '—';
+    try {
+      // Convert from YYYY-MM-DD to DD-MM-YYYY
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return '${parts[2]}-${parts[1]}-${parts[0]}';
+      }
+    } catch (e) {
+      return '—';
+    }
+    return dateStr;
   }
 
   String _formatKm(dynamic km) {

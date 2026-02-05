@@ -328,11 +328,46 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _serviceCtrl.addListener(_formatServiceDate);
+  }
+
+  void _formatServiceDate() {
+    String input = _serviceCtrl.text.replaceAll('-', '');
+
+    if (input.length > 8) {
+      input = input.substring(0, 8);
+    }
+
+    String formatted = '';
+    if (input.length >= 2) {
+      formatted = input.substring(0, 2);
+      if (input.length >= 4) {
+        formatted += '-${input.substring(2, 4)}';
+        if (input.length == 8) {
+          formatted += '-${input.substring(4, 8)}';
+        }
+      }
+    } else {
+      formatted = input;
+    }
+
+    if (_serviceCtrl.text != formatted) {
+      _serviceCtrl.value = _serviceCtrl.value.copyWith(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _brandCtrl.dispose();
     _modelCtrl.dispose();
     _plateCtrl.dispose();
     _yearCtrl.dispose();
+    _serviceCtrl.removeListener(_formatServiceDate);
     _serviceCtrl.dispose();
     super.dispose();
   }
@@ -346,17 +381,27 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
     }
     if (_serviceCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Service date is required (YYYY-MM-DD)')),
+        const SnackBar(content: Text('Service date is required (DD-MM-YYYY)')),
       );
       return;
     }
-    // Validate date format
+    // Validate and convert DD-MM-YYYY to YYYY-MM-DD
+    String isoDateStr;
     try {
-      DateTime.parse(_serviceCtrl.text.trim());
+      final parts = _serviceCtrl.text.trim().split('-');
+      if (parts.length != 3) {
+        throw Exception('Invalid format');
+      }
+      final day = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      final year = int.parse(parts[2]);
+      // Validate the date
+      DateTime(year, month, day);
+      isoDateStr = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid date format. Use YYYY-MM-DD')),
+          const SnackBar(content: Text('Invalid date format. Use DD-MM-YYYY')),
         );
       }
       return;
@@ -374,7 +419,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         imagePath: null,
         lat: null,
         lng: null,
-        nextServiceDate: _serviceCtrl.text.trim(),
+        nextServiceDate: isoDateStr,
         colour: null,
         fuelType: null,
         mileageKm: null,
@@ -476,9 +521,10 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
             // Next Service Date
             TextField(
               controller: _serviceCtrl,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: 'Next Service Date *',
-                hintText: 'YYYY-MM-DD',
+                hintText: 'DD-MM-YYYY',
                 border: OutlineInputBorder(),
               ),
             ),
