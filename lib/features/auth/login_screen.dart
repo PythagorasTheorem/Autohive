@@ -50,8 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await _authService.init();
 
       final user = await _authService.login(
-        username: _usernameCtrl.text.trim(),
-        password: _passwordCtrl.text,
+        username: _usernameCtrl.text.trim().toLowerCase(),
+        password: _passwordCtrl.text.trim(),
       );
 
       if (mounted) {

@@ -47,11 +47,14 @@ class AuthService {
     required String phone,
   }) async {
     try {
+      final normalizedUsername = username.trim().toLowerCase();
+      final normalizedEmail = email.trim().toLowerCase();
+      
       // Check if username already exists
       final existingUser = await _db.query(
         'users',
-        where: 'username = ?',
-        whereArgs: [username],
+        where: 'LOWER(username) = ?',
+        whereArgs: [normalizedUsername],
       );
       
       if (existingUser.isNotEmpty) {
@@ -61,8 +64,8 @@ class AuthService {
       // Check if email already exists
       final existingEmail = await _db.query(
         'users',
-        where: 'email = ?',
-        whereArgs: [email],
+        where: 'LOWER(email) = ?',
+        whereArgs: [normalizedEmail],
       );
       
       if (existingEmail.isNotEmpty) {
@@ -73,11 +76,11 @@ class AuthService {
       await _db.insert(
         'users',
         {
-          'username': username,
-          'email': email,
-          'password': password, // In production, hash this!
-          'name': name,
-          'phone': phone,
+          'username': normalizedUsername,
+          'email': normalizedEmail,
+          'password': password.trim(), // In production, hash this!
+          'name': name.trim(),
+          'phone': phone.trim(),
         },
       );
       
@@ -93,10 +96,13 @@ class AuthService {
     required String password,
   }) async {
     try {
+      final normalizedUsername = username.trim().toLowerCase();
+      final trimmedPassword = password.trim();
+      
       final users = await _db.query(
         'users',
-        where: 'username = ? AND password = ?',
-        whereArgs: [username, password],
+        where: 'LOWER(username) = ? AND password = ?',
+        whereArgs: [normalizedUsername, trimmedPassword],
       );
       
       if (users.isEmpty) {
@@ -112,10 +118,11 @@ class AuthService {
   // Get user by username
   Future<Map<String, dynamic>?> getUserByUsername(String username) async {
     try {
+      final normalizedUsername = username.trim().toLowerCase();
       final users = await _db.query(
         'users',
-        where: 'username = ?',
-        whereArgs: [username],
+        where: 'LOWER(username) = ?',
+        whereArgs: [normalizedUsername],
       );
       
       return users.isNotEmpty ? users.first : null;
@@ -136,10 +143,11 @@ class AuthService {
   // Delete user (for admin purposes)
   Future<int> deleteUser(String username) async {
     try {
+      final normalizedUsername = username.trim().toLowerCase();
       return await _db.delete(
         'users',
-        where: 'username = ?',
-        whereArgs: [username],
+        where: 'LOWER(username) = ?',
+        whereArgs: [normalizedUsername],
       );
     } catch (e) {
       rethrow;
