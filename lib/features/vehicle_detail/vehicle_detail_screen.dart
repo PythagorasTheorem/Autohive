@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../core/theme.dart';
 import '../vehicles/vehicle.dart';
 import '../vehicles/vehicles_provider.dart';
@@ -554,21 +556,37 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
 
   Widget _buildImageWidget(String imagePath) {
     try {
+      if (imagePath.isEmpty) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.image_not_supported, color: Colors.grey, size: 40),
+              SizedBox(height: 8),
+              Text('No image', style: TextStyle(fontSize: 10, color: Colors.grey)),
+            ],
+          ),
+        );
+      }
+      
       final file = File(imagePath);
       if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error, color: Colors.red, size: 40),
-                const SizedBox(height: 8),
-                const Text('Error loading image', style: TextStyle(fontSize: 10)),
-              ],
-            );
-          },
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            file,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 40),
+                  const SizedBox(height: 8),
+                  const Text('Error loading image', style: TextStyle(fontSize: 10)),
+                ],
+              );
+            },
+          ),
         );
       } else {
         return Column(
@@ -576,7 +594,7 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
           children: [
             const Icon(Icons.warning, color: Colors.orange, size: 40),
             const SizedBox(height: 8),
-            const Text('File not found', style: TextStyle(fontSize: 10)),
+            const Text('File not found', style: TextStyle(fontSize: 10, color: Colors.orange)),
           ],
         );
       }
@@ -586,7 +604,7 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
         children: [
           const Icon(Icons.error, color: Colors.red, size: 40),
           const SizedBox(height: 8),
-          const Text('Error', style: TextStyle(fontSize: 10)),
+          Text('Error: $e', style: const TextStyle(fontSize: 9)),
         ],
       );
     }
@@ -599,9 +617,40 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
         // Check if file exists
         final file = File(image.path);
         if (await file.exists()) {
-          setState(() {
-            _selectedImagePath = image.path;
-          });
+          // Copy image to app documents directory
+          try {
+            final appDir = await getApplicationDocumentsDirectory();
+            final vehicleImagesDir = Directory('${appDir.path}/vehicle_images');
+            
+            // Create directory if it doesn't exist
+            if (!await vehicleImagesDir.exists()) {
+              await vehicleImagesDir.create(recursive: true);
+            }
+            
+            // Generate unique filename
+            final timestamp = DateTime.now().millisecondsSinceEpoch;
+            final filename = 'vehicle_${widget.vehicle.id}_$timestamp.jpg';
+            final savedImagePath = '${vehicleImagesDir.path}/$filename';
+            
+            // Copy file to app directory
+            await file.copy(savedImagePath);
+            
+            setState(() {
+              _selectedImagePath = savedImagePath;
+            });
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Image selected successfully')),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error saving image: $e')),
+              );
+            }
+          }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -635,7 +684,10 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
         if (!file.existsSync()) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Selected image file not found')),
+              const SnackBar(
+                content: Text('Image file is no longer available. Please select the image again.'),
+                backgroundColor: Colors.orange,
+              ),
             );
           }
           return;
@@ -665,12 +717,18 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
 
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vehicle updated successfully')),
+        const SnackBar(
+          content: Text('Vehicle updated successfully'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error updating vehicle: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating vehicle: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
