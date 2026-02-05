@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const Expanded(
                   child: Text(
-                    'Profile',
+                    'My Profile',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -275,36 +275,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Consumer<UserProvider>(
                 builder: (context, userProvider, _) {
                   return Column(
                     children: [
-                      // Profile Avatar
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEDEFF4),
-                          shape: BoxShape.circle,
+                      // Profile Header Card
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Icon(
-                          Icons.person_outline,
-                          size: 60,
-                          color: kNavy,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [kNavy, kNavy.withOpacity(0.8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                userProvider.name,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '@${userProvider.username}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.8),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
                       // Username (read-only)
                       _buildReadOnlyField(
+                        icon: Icons.person_outline,
                         label: 'Username',
                         value: userProvider.username,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+
+                      // Email Section
+                      _buildEditableField(
+                        icon: Icons.email_outlined,
+                        label: 'Email Address',
+                        value: userProvider.email,
+                        controller: _emailController,
+                        isEditing: _isEditingEmail,
+                        onEdit: () => setState(() => _isEditingEmail = true),
+                        onCancel: () {
+                          setState(() => _isEditingEmail = false);
+                          _emailController.text = userProvider.email;
+                        },
+                        onSave: _saveEmail,
+                      ),
+                      const SizedBox(height: 16),
 
                       // Name Section
                       _buildEditableField(
+                        icon: Icons.badge_outlined,
                         label: 'Full Name',
                         value: userProvider.name,
                         controller: _nameController,
@@ -316,26 +377,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                         onSave: _saveName,
                       ),
-                      const SizedBox(height: 20),
-
-                      // Email Section
-                      _buildEditableField(
-                        label: 'Email',
-                        value: userProvider.email,
-                        controller: _emailController,
-                        isEditing: _isEditingEmail,
-                        onEdit: () => setState(() => _isEditingEmail = true),
-                        onCancel: () {
-                          setState(() => _isEditingEmail = false);
-                          _emailController.text = userProvider.email;
-                        },
-                        onSave: _saveEmail,
-                      ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // Phone Section
                       _buildEditableField(
-                        label: 'Phone',
+                        icon: Icons.phone_outlined,
+                        label: 'Phone Number',
                         value: userProvider.phone,
                         controller: _phoneController,
                         isEditing: _isEditingPhone,
@@ -346,82 +393,148 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                         onSave: _savePhone,
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 32),
 
                       // Password Section
                       if (!_showPasswordFields)
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.lock_outline),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              backgroundColor: kCyan,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             onPressed: () =>
                                 setState(() => _showPasswordFields = true),
-                            child: const Text(
+                            label: const Text(
                               'Change Password',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
                       if (_showPasswordFields) ...[
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'New Password',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        Card(
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Change Password',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: kNavy,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: _passwordController,
+                                  obscureText: true,
+                                  decoration: InputDecoration(
+                                    hintText: 'New Password',
+                                    prefixIcon: Icon(Icons.lock_outline,
+                                        color: kCyan),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE0E0E0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _confirmPasswordController,
+                                  obscureText: true,
+                                  decoration: InputDecoration(
+                                    hintText: 'Confirm Password',
+                                    prefixIcon: Icon(Icons.lock_outline,
+                                        color: kCyan),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE0E0E0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFFB0BEC5),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _showPasswordFields = false;
+                                            _passwordController.clear();
+                                            _confirmPasswordController
+                                                .clear();
+                                          });
+                                        },
+                                        child: const Text('Cancel',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            )),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF4CAF50),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: _savePassword,
+                                        child: const Text('Update',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            )),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _confirmPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'Confirm Password',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _showPasswordFields = false;
-                                    _passwordController.clear();
-                                    _confirmPasswordController.clear();
-                                  });
-                                },
-                                child: const Text('Cancel',
-                                    style: TextStyle(color: Colors.white)),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: kNavy,
-                                ),
-                                onPressed: _savePassword,
-                                child: const Text('Save',
-                                    style: TextStyle(color: Colors.white)),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                       const SizedBox(height: 40),
@@ -429,21 +542,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Logout Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.logout),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: const Color(0xFFE53935),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: _logout,
-                          child: const Text(
+                          label: const Text(
                             'Logout',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
                     ],
                   );
                 },
@@ -453,38 +572,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildReadOnlyField({
+    required IconData icon,
     required String label,
     required String value,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey,
-          ),
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: kCyan.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: kCyan, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.grey.shade50,
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildEditableField({
+    required IconData icon,
     required String label,
     required String value,
     required TextEditingController controller,
@@ -493,81 +635,134 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required VoidCallback onCancel,
     required VoidCallback onSave,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-              ),
-            ),
-            if (!isEditing)
-              GestureDetector(
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: !isEditing
+            ? GestureDetector(
                 onTap: onEdit,
-                child: const Icon(Icons.edit, size: 18, color: Colors.blue),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (!isEditing)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey.shade50,
-            ),
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
-          )
-        else
-          Column(
-            children: [
-              TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: kCyan.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: kCyan, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            value,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.edit_outlined, color: kCyan, size: 20),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                      ),
-                      onPressed: onCancel,
-                      child: const Text('Cancel',
-                          style: TextStyle(color: Colors.white)),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                      letterSpacing: 0.4,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kNavy,
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(icon, color: kCyan),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      onPressed: onSave,
-                      child: const Text('Save',
-                          style: TextStyle(color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE0E0E0),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: kCyan,
+                          width: 2,
+                        ),
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFB0BEC5),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: onCancel,
+                          child: const Text('Cancel',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              )),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: onSave,
+                          child: const Text('Save',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              )),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-      ],
+      ),
     );
   }
 }
