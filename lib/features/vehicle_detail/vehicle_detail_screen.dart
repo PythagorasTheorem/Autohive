@@ -227,35 +227,153 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       }
     }
 
-    Text row(String label, String value, {Color? color}) => Text(
-      '$label   ${value.isEmpty ? "—" : value}',
-      style: TextStyle(color: color ?? Colors.black87, height: 1.5),
-    );
-
     return _sectionCard(
-      title: 'Vehicle information',
+      title: 'Vehicle Information',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          row('Model', '${v.brand} ${v.model}'),
-          row(
-            'Status',
-            v.status
+          // Brand & Model
+          _infoRow(
+            icon: Icons.directions_car,
+            label: 'Model',
+            value: '${v.brand} ${v.model}',
+          ),
+          Divider(height: 16, color: Colors.grey.shade300),
+          
+          // Status
+          _infoRow(
+            icon: Icons.info_outline,
+            label: 'Status',
+            value: v.status
                 .replaceAll('_', ' ')
                 .split(' ')
                 .map((w) => w[0].toUpperCase() + w.substring(1))
                 .join(' '),
-            color: statusColor(v.status),
+            valueColor: statusColor(v.status),
           ),
-          row('Year', (v.year ?? 0) == 0 ? '—' : v.year.toString()),
-          row('Plate', v.plate),
-          row('Colour', v.colour ?? '—'),
-          row('Fuel type', v.fuelType ?? '—'),
-          row('Mileage', _formatKm(v.mileageKm)),
-          row('Seats', v.seats?.toString() ?? '—'),
-          row('Next Service Date', _formatServiceDate(v.nextServiceDate)),
+          Divider(height: 16, color: Colors.grey.shade300),
+          
+          // Year & Plate
+          Row(
+            children: [
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.calendar_today,
+                  label: 'Year',
+                  value: (v.year ?? 0) == 0 ? '—' : v.year.toString(),
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.tag,
+                  label: 'Plate',
+                  value: v.plate,
+                  compact: true,
+                ),
+              ),
+            ],
+          ),
+          Divider(height: 16, color: Colors.grey.shade300),
+          
+          // Colour & Fuel Type
+          Row(
+            children: [
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.palette,
+                  label: 'Colour',
+                  value: v.colour ?? '—',
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.local_gas_station,
+                  label: 'Fuel',
+                  value: v.fuelType ?? '—',
+                  compact: true,
+                ),
+              ),
+            ],
+          ),
+          Divider(height: 16, color: Colors.grey.shade300),
+          
+          // Mileage & Seats
+          Row(
+            children: [
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.speed,
+                  label: 'Mileage',
+                  value: _formatKm(v.mileageKm),
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _infoRow(
+                  icon: Icons.event_seat,
+                  label: 'Seats',
+                  value: v.seats?.toString() ?? '—',
+                  compact: true,
+                ),
+              ),
+            ],
+          ),
+          Divider(height: 16, color: Colors.grey.shade300),
+          
+          // Service Date
+          _infoRow(
+            icon: Icons.build,
+            label: 'Next Service',
+            value: _formatServiceDate(v.nextServiceDate),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _infoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? valueColor,
+    bool compact = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: kCyan),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: compact ? 11 : 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value.isEmpty ? '—' : value,
+                style: TextStyle(
+                  fontSize: compact ? 13 : 15,
+                  color: valueColor ?? Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
