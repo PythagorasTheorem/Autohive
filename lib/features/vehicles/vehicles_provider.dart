@@ -31,6 +31,8 @@ class VehiclesProvider extends ChangeNotifier {
   String get query => _query;
 
   Future<void> load() async {
+    // Fix expired service dates first
+    await _repo.fixExpiredServiceDates();
     _all = await _repo.getAll();
     notifyListeners();
   }

@@ -93,4 +93,35 @@ class VehiclesRepository {
       whereArgs: [vehicle.id],
     );
   }
+
+  Future<void> fixExpiredServiceDates() async {
+    try {
+      final now = DateTime.now();
+      final vehicles = await getAll();
+      
+      for (final vehicle in vehicles) {
+        if (vehicle.nextServiceDate != null && vehicle.nextServiceDate!.isNotEmpty) {
+          try {
+            final serviceDate = DateTime.parse(vehicle.nextServiceDate!);
+            // If service date is in the past, update it to 3 months from now
+            if (serviceDate.isBefore(now)) {
+              final newServiceDate = now.add(const Duration(days: 90));
+              final formattedDate = '${newServiceDate.year}-${newServiceDate.month.toString().padLeft(2, '0')}-${newServiceDate.day.toString().padLeft(2, '0')}';
+              
+              await _db.update(
+                'vehicles',
+                {'next_service_date': formattedDate},
+                where: 'id = ?',
+                whereArgs: [vehicle.id],
+              );
+            }
+          } catch (e) {
+            // Invalid date format, skip
+          }
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
