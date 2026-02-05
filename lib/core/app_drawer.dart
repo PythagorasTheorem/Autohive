@@ -33,22 +33,22 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           _drawerItem(
-            context,
             Icons.directions_car,
             'Vehicle Inventory',
             const VehiclesScreen(),
+            context,
           ),
           _drawerItem(
-            context,
             Icons.build_circle,
             'Maintenance',
             const MaintenanceScreen(),
+            context,
           ),
           _drawerItem(
-            context,
             Icons.dashboard,
             'Dashboard',
             const DashboardScreen(),
+            context,
           ),
           const Divider(),
           ListTile(
@@ -69,10 +69,10 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _drawerItem(
-    BuildContext context,
     IconData icon,
     String label,
     Widget screen,
+    BuildContext context,
   ) {
     return ListTile(
       leading: Icon(icon),

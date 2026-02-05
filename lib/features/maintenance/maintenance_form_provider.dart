@@ -61,20 +61,30 @@ class MaintenanceFormProvider extends ChangeNotifier {
 
   Future<void> submit() async {
     if (!valid) return;
-    loading = true; notifyListeners();
+    if (loading) return;
+    loading = true;
+    notifyListeners();
 
-    await _db.transaction((txn) async {
-      await txn.insert('maintenance_requests', {
-        'vehicle_id': vehicleId,
-        'issue': issue.trim(),
-        'photo_path': photoPath,
-        'status': 'pending',
-        'created_at': DateTime.now().toIso8601String().substring(0,10),
+    try {
+      await _db.transaction((txn) async {
+        await txn.insert('maintenance_requests', {
+          'vehicle_id': vehicleId,
+          'issue': issue.trim(),
+          'photo_path': photoPath,
+          'status': 'pending',
+          'created_at': DateTime.now().toIso8601String().substring(0,10),
+        });
+        await txn.update('vehicles', {'status': 'maintenance'},
+          where: 'id = ?', whereArgs: [vehicleId]);
       });
-      await txn.update('vehicles', {'status': 'maintenance'},
-        where: 'id = ?', whereArgs: [vehicleId]);
-    });
-
-    loading = false; notifyListeners();
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('MaintenanceFormProvider.submit error: $e\n$st');
+      }
+      rethrow;
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
   }
 }

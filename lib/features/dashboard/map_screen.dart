@@ -162,57 +162,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _mapMarker(String status, Color color) {
-    return Column(
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-          ),
-          child: const Icon(
-            Icons.directions_car,
-            size: 12,
-            color: Colors.white,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            status,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _legendItem(String status, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(status, style: const TextStyle(fontSize: 12)),
-      ],
-    );
-  }
-
   Widget _vehicleStatusCard(String name, String status, int index) {
     Color statusColor(String s) {
       switch (s) {

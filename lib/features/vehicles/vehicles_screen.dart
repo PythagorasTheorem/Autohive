@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../../core/theme.dart';
 import 'vehicles_provider.dart';
 import 'vehicle.dart';
@@ -236,12 +237,7 @@ class _VehicleCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: (item.imagePath != null && item.imagePath!.isNotEmpty)
-                    ? Image.asset(
-                        item.imagePath!,
-                        width: 88,
-                        height: 56,
-                        fit: BoxFit.cover,
-                      )
+                    ? _buildVehicleImage(item.imagePath!)
                     : Container(
                         width: 88,
                         height: 56,
@@ -307,6 +303,27 @@ class _VehicleCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildVehicleImage(String imagePath) {
+    if (imagePath.startsWith('/')) {
+      // File path - try to load as local file
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        return Image.file(file, width: 88, height: 56, fit: BoxFit.cover);
+      } else {
+        // File doesn't exist, return placeholder
+        return Container(
+          width: 88,
+          height: 56,
+          color: const Color(0xFFEDEFF4),
+          child: const Icon(Icons.image_not_supported),
+        );
+      }
+    } else {
+      // Asset path
+      return Image.asset(imagePath, width: 88, height: 56, fit: BoxFit.cover);
+    }
   }
 }
 
@@ -387,25 +404,26 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       final input = _serviceCtrl.text.trim();
       final regex = RegExp(r'^(\d{2})-(\d{2})-(\d{4})$');
       final match = regex.firstMatch(input);
-      
+
       if (match == null) {
         throw Exception('Invalid format');
       }
-      
+
       final day = int.parse(match.group(1)!);
       final month = int.parse(match.group(2)!);
       final year = int.parse(match.group(3)!);
-      
+
       if (day < 1 || day > 31) {
         throw Exception('Day must be between 01 and 31');
       }
       if (month < 1 || month > 12) {
         throw Exception('Month must be between 01 and 12');
       }
-      
+
       // Validate the date (this will throw if invalid, e.g., Feb 30)
       DateTime(year, month, day);
-      isoDateStr = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+      isoDateStr =
+          '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
     } catch (e) {
       if (mounted) {
         String errorMsg = 'Invalid date format. Use DD-MM-YYYY';
@@ -414,9 +432,9 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         } else if (e.toString().contains('Month must')) {
           errorMsg = e.toString().replaceFirst('Exception: ', '');
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMsg)));
       }
       return;
     }

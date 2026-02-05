@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../../core/theme.dart';
 import 'maintenance_provider.dart';
 import 'maintenance_item.dart';
@@ -229,12 +230,7 @@ class _MaintenanceCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: (item.imagePath != null && item.imagePath!.isNotEmpty)
-                  ? Image.asset(
-                      item.imagePath!,
-                      width: 100,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    )
+                  ? _buildMaintenanceImage(item.imagePath!)
                   : Container(
                       width: 100,
                       height: 60,
@@ -283,5 +279,36 @@ class _MaintenanceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildMaintenanceImage(String imagePath) {
+    if (imagePath.startsWith('/')) {
+      // File path - try to load as local file
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          width: 100,
+          height: 60,
+          fit: BoxFit.cover,
+        );
+      } else {
+        // File doesn't exist, return placeholder
+        return Container(
+          width: 100,
+          height: 60,
+          color: const Color(0xFFEDEFF4),
+          child: const Icon(Icons.image_not_supported),
+        );
+      }
+    } else {
+      // Asset path
+      return Image.asset(
+        imagePath,
+        width: 100,
+        height: 60,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }

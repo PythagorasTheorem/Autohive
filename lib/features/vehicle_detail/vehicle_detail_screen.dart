@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import '../../core/theme.dart';
 import '../vehicles/vehicle.dart';
 import '../vehicles/vehicles_provider.dart';
@@ -175,10 +174,66 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         color: const Color(0xFFEDEFF4),
         alignment: Alignment.center,
         child: (v.imagePath != null && v.imagePath!.isNotEmpty)
-            ? Image.asset(v.imagePath!, height: 180, fit: BoxFit.cover)
+            ? _buildImageFromPath(v.imagePath!)
             : const Icon(Icons.directions_car, size: 72, color: Colors.black45),
       ),
     );
+  }
+
+  Widget _buildImageFromPath(String imagePath) {
+    try {
+      // Check if it's a file path or an asset path
+      if (imagePath.startsWith('/')) {
+        // It's a file path
+        final file = File(imagePath);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            height: 180,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(Icons.broken_image, size: 60, color: Colors.grey),
+              );
+            },
+          );
+        } else {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_not_supported, size: 60, color: Colors.orange),
+                SizedBox(height: 8),
+                Text('Image not found', style: TextStyle(color: Colors.orange)),
+              ],
+            ),
+          );
+        }
+      } else {
+        // It's an asset path
+        return Image.asset(
+          imagePath,
+          height: 180,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(
+              child: Icon(Icons.broken_image, size: 60, color: Colors.grey),
+            );
+          },
+        );
+      }
+    } catch (e) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error, size: 60, color: Colors.red),
+            const SizedBox(height: 8),
+            Text('Error loading image', style: TextStyle(color: Colors.red, fontSize: 12)),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _sectionCard({
