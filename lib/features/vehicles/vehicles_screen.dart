@@ -344,6 +344,23 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       );
       return;
     }
+    if (_serviceCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Service date is required (YYYY-MM-DD)')),
+      );
+      return;
+    }
+    // Validate date format
+    try {
+      DateTime.parse(_serviceCtrl.text.trim());
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid date format. Use YYYY-MM-DD')),
+        );
+      }
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
@@ -357,9 +374,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         imagePath: null,
         lat: null,
         lng: null,
-        nextServiceDate: _serviceCtrl.text.trim().isEmpty
-            ? null
-            : _serviceCtrl.text.trim(),
+        nextServiceDate: _serviceCtrl.text.trim(),
         colour: null,
         fuelType: null,
         mileageKm: null,
@@ -462,7 +477,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
             TextField(
               controller: _serviceCtrl,
               decoration: const InputDecoration(
-                labelText: 'Next Service Date',
+                labelText: 'Next Service Date *',
                 hintText: 'YYYY-MM-DD',
                 border: OutlineInputBorder(),
               ),
