@@ -334,23 +334,19 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
   }
 
   void _formatServiceDate() {
-    String input = _serviceCtrl.text.replaceAll('-', '');
+    String input = _serviceCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (input.length > 8) {
       input = input.substring(0, 8);
     }
 
     String formatted = '';
-    if (input.length >= 2) {
-      formatted = input.substring(0, 2);
-      if (input.length >= 4) {
-        formatted += '-${input.substring(2, 4)}';
-        if (input.length == 8) {
-          formatted += '-${input.substring(4, 8)}';
-        }
+    for (int i = 0; i < input.length; i++) {
+      formatted += input[i];
+      // Add hyphens after 2nd and 4th digits
+      if ((i == 1 || i == 3) && i < input.length - 1) {
+        formatted += '-';
       }
-    } else {
-      formatted = input;
     }
 
     if (_serviceCtrl.text != formatted) {
@@ -388,20 +384,38 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
     // Validate and convert DD-MM-YYYY to YYYY-MM-DD
     String isoDateStr;
     try {
-      final parts = _serviceCtrl.text.trim().split('-');
-      if (parts.length != 3) {
+      final input = _serviceCtrl.text.trim();
+      final regex = RegExp(r'^(\d{2})-(\d{2})-(\d{4})$');
+      final match = regex.firstMatch(input);
+      
+      if (match == null) {
         throw Exception('Invalid format');
       }
-      final day = int.parse(parts[0]);
-      final month = int.parse(parts[1]);
-      final year = int.parse(parts[2]);
-      // Validate the date
+      
+      final day = int.parse(match.group(1)!);
+      final month = int.parse(match.group(2)!);
+      final year = int.parse(match.group(3)!);
+      
+      if (day < 1 || day > 31) {
+        throw Exception('Day must be between 01 and 31');
+      }
+      if (month < 1 || month > 12) {
+        throw Exception('Month must be between 01 and 12');
+      }
+      
+      // Validate the date (this will throw if invalid, e.g., Feb 30)
       DateTime(year, month, day);
       isoDateStr = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
     } catch (e) {
       if (mounted) {
+        String errorMsg = 'Invalid date format. Use DD-MM-YYYY';
+        if (e.toString().contains('Day must')) {
+          errorMsg = e.toString().replaceFirst('Exception: ', '');
+        } else if (e.toString().contains('Month must')) {
+          errorMsg = e.toString().replaceFirst('Exception: ', '');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid date format. Use DD-MM-YYYY')),
+          SnackBar(content: Text(errorMsg)),
         );
       }
       return;
