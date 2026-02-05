@@ -495,7 +495,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Status   ${b.status[0].toUpperCase()}${b.status.substring(1)}',
+            'Status   ${b.status.isNotEmpty ? '${b.status[0].toUpperCase()}${b.status.substring(1)}' : 'Unknown'}',
             style: const TextStyle(height: 1.5),
           ),
           Text(

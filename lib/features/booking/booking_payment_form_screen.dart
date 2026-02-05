@@ -103,8 +103,8 @@ class _BookingPaymentFormScreenState extends State<BookingPaymentFormScreen> {
         return;
       }
       try {
-        final month = int.parse(expiryParts[0]);
-        final year = int.parse(expiryParts[1]);
+        final month = int.parse(expiryParts[0].trim());
+        final year = int.parse(expiryParts[1].trim());
         if (month < 1 || month > 12) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Invalid month (01-12)')),

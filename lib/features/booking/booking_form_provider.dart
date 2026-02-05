@@ -114,6 +114,8 @@ class BookingFormProvider extends ChangeNotifier {
       vehicleId != null &&
       startDate != null &&
       endDate != null &&
+      endDate != null &&
+      startDate != null &&
       !endDate!.isBefore(startDate!) &&
       fullName.trim().isNotEmpty &&
       isValidEmail(email) &&

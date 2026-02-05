@@ -117,10 +117,12 @@ class _MapScreenState extends State<MapScreen> {
                 onMapCreated: _onMapCreated,
                 mapType: _currentMapType,
                 initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                    _vehicles[0]['lat'] as double,
-                    _vehicles[0]['lng'] as double,
-                  ),
+                  target: _vehicles.isNotEmpty
+                      ? LatLng(
+                          _vehicles[0]['lat'] as double,
+                          _vehicles[0]['lng'] as double,
+                        )
+                      : const LatLng(0, 0),
                   zoom: 13,
                 ),
                 markers: _markers,
