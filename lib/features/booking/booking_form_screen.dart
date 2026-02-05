@@ -139,10 +139,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         firstDate: DateTime(now.year, now.month, now.day),
                         lastDate: DateTime(now.year + 2),
                       );
-                      if (picked != null)
+                      if (picked != null) {
                         p.setStart(
                           DateTime(picked.year, picked.month, picked.day),
                         );
+                      }
                     },
                   ),
                 ),
@@ -159,10 +160,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         firstDate: start,
                         lastDate: DateTime(DateTime.now().year + 2),
                       );
-                      if (picked != null)
+                      if (picked != null) {
                         p.setEnd(
                           DateTime(picked.year, picked.month, picked.day),
                         );
+                      }
                     },
                   ),
                 ),

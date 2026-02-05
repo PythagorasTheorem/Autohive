@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/auth_service.dart';
 import 'login_screen.dart';
+import 'validators.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,6 +21,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _loading = false;
   final _authService = AuthService();
 
+  // Error states
+  String? _usernameError;
+  String? _nameError;
+  String? _passwordError;
+  String? _emailError;
+  String? _phoneError;
+
   @override
   void dispose() {
     _usernameCtrl.dispose();
@@ -31,30 +39,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _signup() async {
-    if (_usernameCtrl.text.isEmpty ||
-        _nameCtrl.text.isEmpty ||
-        _passwordCtrl.text.isEmpty ||
-        _emailCtrl.text.isEmpty ||
-        _phoneCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
+    // Validate all fields
+    final usernameError = ValidationHelper.validateUsername(_usernameCtrl.text);
+    final nameError = ValidationHelper.validateName(_nameCtrl.text);
+    final emailError = ValidationHelper.validateEmail(_emailCtrl.text);
+    final phoneError = ValidationHelper.validateContactNumber(_phoneCtrl.text);
+    final passwordError = ValidationHelper.validatePassword(_passwordCtrl.text);
 
-    // Validate email
-    if (!_emailCtrl.text.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email')),
-      );
-      return;
-    }
+    setState(() {
+      _usernameError = usernameError;
+      _nameError = nameError;
+      _emailError = emailError;
+      _phoneError = phoneError;
+      _passwordError = passwordError;
+    });
 
-    // Validate password length
-    if (_passwordCtrl.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
-      );
+    // Check if there are any errors
+    if (usernameError != null ||
+        nameError != null ||
+        emailError != null ||
+        phoneError != null ||
+        passwordError != null) {
       return;
     }
 
@@ -62,7 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       await _authService.init();
-      
+
       final success = await _authService.register(
         username: _usernameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
@@ -73,7 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (mounted) {
         setState(() => _loading = false);
-        
+
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -81,18 +86,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Clear fields
           _usernameCtrl.clear();
           _nameCtrl.clear();
           _passwordCtrl.clear();
           _emailCtrl.clear();
           _phoneCtrl.clear();
-          
+
           // Navigate to login
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
+          Navigator.of(
+            context,
+          ).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
         }
       }
     } catch (e) {
@@ -143,6 +148,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _usernameCtrl,
+                onChanged: (_) {
+                  setState(() {
+                    _usernameError = ValidationHelper.validateUsername(
+                      _usernameCtrl.text,
+                    );
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Choose a username',
                   contentPadding: const EdgeInsets.symmetric(
@@ -151,10 +163,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _usernameError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.person_outline),
+                  errorText: _usernameError,
                 ),
               ),
+              if (_usernameError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _usernameError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 12),
 
               // Name field
@@ -168,6 +199,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _nameCtrl,
+                onChanged: (_) {
+                  setState(() {
+                    _nameError = ValidationHelper.validateName(_nameCtrl.text);
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your full name',
                   contentPadding: const EdgeInsets.symmetric(
@@ -176,10 +212,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _nameError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.person),
+                  errorText: _nameError,
                 ),
               ),
+              if (_nameError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _nameError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 12),
 
               // Email field
@@ -194,6 +249,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
+                onChanged: (_) {
+                  setState(() {
+                    _emailError = ValidationHelper.validateEmail(
+                      _emailCtrl.text,
+                    );
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your email',
                   contentPadding: const EdgeInsets.symmetric(
@@ -202,10 +264,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _emailError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.email_outlined),
+                  errorText: _emailError,
                 ),
               ),
+              if (_emailError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _emailError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 12),
 
               // Phone field
@@ -232,6 +313,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: TextField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
+                      onChanged: (_) {
+                        setState(() {
+                          _phoneError = ValidationHelper.validateContactNumber(
+                            _phoneCtrl.text,
+                          );
+                        });
+                      },
                       decoration: InputDecoration(
                         hintText: 'Number',
                         contentPadding: const EdgeInsets.symmetric(
@@ -240,12 +328,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: _phoneError != null
+                                ? Colors.red
+                                : Colors.grey.shade300,
+                          ),
                         ),
+                        errorText: _phoneError,
                       ),
                     ),
                   ),
                 ],
               ),
+              if (_phoneError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _phoneError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 12),
 
               // Password field
@@ -260,6 +367,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextField(
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
+                onChanged: (_) {
+                  setState(() {
+                    _passwordError = ValidationHelper.validatePassword(
+                      _passwordCtrl.text,
+                    );
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Create a password',
                   contentPadding: const EdgeInsets.symmetric(
@@ -268,6 +382,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _passwordError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
@@ -279,8 +398,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  errorText: _passwordError,
                 ),
               ),
+              if (_passwordError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _passwordError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 24),
 
               // Sign up button
@@ -319,7 +452,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const Text('Already have an account? '),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      MaterialPageRoute(builder: (_) => LoginScreen()),
                     ),
                     child: const Text(
                       'Login',

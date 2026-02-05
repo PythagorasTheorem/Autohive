@@ -91,8 +91,9 @@ class BookingFormProvider extends ChangeNotifier {
 
   String? getEmailError() {
     if (email.trim().isEmpty) return 'Email is required';
-    if (!isValidEmail(email))
+    if (!isValidEmail(email)) {
       return 'Email must contain @ and a domain (e.g., user@example.com)';
+    }
     return null;
   }
 

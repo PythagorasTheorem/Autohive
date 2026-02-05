@@ -28,7 +28,6 @@ import 'features/dashboard/dashboard_provider.dart';
 //booking
 import 'features/booking/booking_form_provider.dart';
 
-import 'features/dashboard/map_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -4,6 +4,7 @@ import '../../core/theme.dart';
 import '../../core/auth_service.dart';
 import 'signup_screen.dart';
 import 'user_provider.dart';
+import 'validators.dart';
 import '../vehicles/vehicles_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _loading = false;
   final _authService = AuthService();
+  String? _usernameError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -28,10 +31,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() async {
-    if (_usernameCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
+    // Validate inputs
+    final usernameError = ValidationHelper.validateUsername(_usernameCtrl.text);
+    final passwordError = ValidationHelper.validatePassword(_passwordCtrl.text);
+
+    setState(() {
+      _usernameError = usernameError;
+      _passwordError = passwordError;
+    });
+
+    if (usernameError != null || passwordError != null) {
       return;
     }
 
@@ -39,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.init();
-      
+
       final user = await _authService.login(
         username: _usernameCtrl.text.trim(),
         password: _passwordCtrl.text,
@@ -47,11 +56,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         setState(() => _loading = false);
-        
+
         if (user != null) {
           // Store user in provider
           context.read<UserProvider>().setUser(user);
-          
+
           // Login successful
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -59,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const VehiclesScreen()),
           );
@@ -121,6 +130,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _usernameCtrl,
+                onChanged: (_) {
+                  setState(() {
+                    _usernameError = ValidationHelper.validateUsername(
+                      _usernameCtrl.text,
+                    );
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your username',
                   contentPadding: const EdgeInsets.symmetric(
@@ -129,10 +145,29 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _usernameError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.person_outline),
+                  errorText: _usernameError,
                 ),
               ),
+              if (_usernameError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _usernameError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 16),
 
               // Password field
@@ -147,6 +182,13 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
+                onChanged: (_) {
+                  setState(() {
+                    _passwordError = ValidationHelper.validatePassword(
+                      _passwordCtrl.text,
+                    );
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   contentPadding: const EdgeInsets.symmetric(
@@ -155,6 +197,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _passwordError != null
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                    ),
                   ),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
@@ -166,8 +213,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  errorText: _passwordError,
                 ),
               ),
+              if (_passwordError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _passwordError!,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(height: 8),
               const SizedBox(height: 24),
 
               // Login button
@@ -206,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text("Don't have an account? "),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                      MaterialPageRoute(builder: (_) => SignUpScreen()),
                     ),
                     child: const Text(
                       'Sign Up',

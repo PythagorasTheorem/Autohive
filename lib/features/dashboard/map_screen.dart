@@ -33,7 +33,7 @@ class _MapScreenState extends State<MapScreen> {
   ];
 
   late GoogleMapController _mapController;
-  MapType _currentMapType = MapType.normal;
+  final MapType _currentMapType = MapType.normal;
   final Set<Marker> _markers = {};
 
   @override
@@ -71,6 +71,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
