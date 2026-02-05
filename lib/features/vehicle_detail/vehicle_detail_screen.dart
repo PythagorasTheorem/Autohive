@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../core/theme.dart';
 import '../vehicles/vehicle.dart';
 import '../vehicles/vehicles_provider.dart';
@@ -434,12 +434,70 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
     super.dispose();
   }
 
+  Widget _buildImageWidget(String imagePath) {
+    try {
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 40),
+                const SizedBox(height: 8),
+                const Text('Error loading image', style: TextStyle(fontSize: 10)),
+              ],
+            );
+          },
+        );
+      } else {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.warning, color: Colors.orange, size: 40),
+            const SizedBox(height: 8),
+            const Text('File not found', style: TextStyle(fontSize: 10)),
+          ],
+        );
+      }
+    } catch (e) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error, color: Colors.red, size: 40),
+          const SizedBox(height: 8),
+          const Text('Error', style: TextStyle(fontSize: 10)),
+        ],
+      );
+    }
+  }
+
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _selectedImagePath = image.path;
-      });
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        // Check if file exists
+        final file = File(image.path);
+        if (await file.exists()) {
+          setState(() {
+            _selectedImagePath = image.path;
+          });
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error: Image file not found')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error selecting image: $e')),
+        );
+      }
     }
   }
 
@@ -452,6 +510,20 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
           ? null
           : int.parse(_seatsController.text);
 
+      // Validate image path if selected
+      String? validatedImagePath = _selectedImagePath;
+      if (validatedImagePath != null && validatedImagePath.isNotEmpty) {
+        final file = File(validatedImagePath);
+        if (!file.existsSync()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Selected image file not found')),
+            );
+          }
+          return;
+        }
+      }
+
       final updatedVehicle = Vehicle(
         id: widget.vehicle.id,
         brand: widget.vehicle.brand,
@@ -459,7 +531,7 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
         plate: widget.vehicle.plate,
         year: widget.vehicle.year,
         status: widget.vehicle.status,
-        imagePath: _selectedImagePath,
+        imagePath: validatedImagePath,
         lat: widget.vehicle.lat,
         lng: widget.vehicle.lng,
         nextServiceDate: widget.vehicle.nextServiceDate,
@@ -506,10 +578,7 @@ class _EditVehicleDialogStateState extends State<_EditVehicleDialogState> {
                       color: const Color(0xFFEDEFF4),
                     ),
                     child: _selectedImagePath != null
-                        ? Image.file(
-                            File(_selectedImagePath!),
-                            fit: BoxFit.cover,
-                          )
+                        ? _buildImageWidget(_selectedImagePath!)
                         : const Icon(
                             Icons.directions_car,
                             size: 60,
