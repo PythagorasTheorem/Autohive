@@ -79,10 +79,11 @@ class _BookingPaymentFormScreenState extends State<BookingPaymentFormScreen> {
         );
         return;
       }
-      if (_cardNumberCtrl.text.length < 13) {
+      final cardLength = _cardNumberCtrl.text.length;
+      if (cardLength < 13 || cardLength > 19) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Card number must be at least 13 digits'),
+            content: Text('Card number must be between 13 and 19 digits'),
           ),
         );
         return;
@@ -90,6 +91,39 @@ class _BookingPaymentFormScreenState extends State<BookingPaymentFormScreen> {
       if (_expiryCtrl.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enter expiry date (MM/YY)')),
+        );
+        return;
+      }
+      // Validate expiry date format and check if expired
+      final expiryParts = _expiryCtrl.text.split('/');
+      if (expiryParts.length != 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid expiry date format (MM/YY)')),
+        );
+        return;
+      }
+      try {
+        final month = int.parse(expiryParts[0]);
+        final year = int.parse(expiryParts[1]);
+        if (month < 1 || month > 12) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid month (01-12)')),
+          );
+          return;
+        }
+        // Convert 2-digit year to 4-digit year
+        final fullYear = year < 50 ? 2000 + year : 1900 + year;
+        // Create expiry date (last day of the month)
+        final expiryDate = DateTime(fullYear, month + 1, 0);
+        if (expiryDate.isBefore(DateTime.now())) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Card has expired')),
+          );
+          return;
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid expiry date')),
         );
         return;
       }
