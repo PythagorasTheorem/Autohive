@@ -246,76 +246,94 @@ class _MaintenanceCard extends StatelessWidget {
       color: statusBgColor,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: (item.imagePath != null && item.imagePath!.isNotEmpty)
-                  ? _buildMaintenanceImage(item.imagePath!)
-                  : Container(
-                      width: 100,
-                      height: 60,
-                      color: const Color(0xFFEDEFF4),
-                      child: const Icon(Icons.directions_car),
-                    ),
-            ),
-            const SizedBox(width: 12),
-            // Texts (no plate per your request)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              children: [
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: (item.imagePath != null && item.imagePath!.isNotEmpty)
+                      ? _buildMaintenanceImage(item.imagePath!)
+                      : Container(
+                          width: 80,
+                          height: 50,
+                          color: const Color(0xFFEDEFF4),
+                          child: const Icon(Icons.directions_car),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                // Title row
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          '${item.brand} ${item.model}',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          item.status == 'completed' ? 'Done' : 'Pending',
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        _since(item.createdAt),
+                        '${item.brand} ${item.model}',
                         style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              item.status == 'completed' ? 'Done' : 'Pending',
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _since(item.createdAt),
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(item.issue),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                // Complete action (only on pending)
+                if (showCompleteIcon)
+                  IconButton(
+                    icon: const Icon(Icons.check_circle, size: 28),
+                    color: const Color(0xFF2E7D32),
+                    tooltip: 'Mark as completed',
+                    onPressed: () => onComplete(item.id, item.vehicleId),
+                  ),
+              ],
             ),
-            const SizedBox(width: 8),
-            // Complete action (only on pending)
-            if (showCompleteIcon)
-              IconButton(
-                icon: const Icon(Icons.check_circle, size: 28),
-                color: const Color(0xFF2E7D32),
-                tooltip: 'Mark as completed',
-                onPressed: () => onComplete(item.id, item.vehicleId),
-              ),
+            const SizedBox(height: 8),
+            Text(
+              item.issue,
+              style: const TextStyle(fontSize: 13),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
