@@ -217,12 +217,37 @@ class _MaintenanceCard extends StatelessWidget {
     }
   }
 
+  Color _getStatusColor() {
+    return item.status == 'completed'
+        ? const Color(0xFF2E7D32) // Green for completed
+        : const Color(0xFFF57C00); // Orange for pending
+  }
+
+  Color _getStatusBgColor() {
+    return item.status == 'completed'
+        ? const Color(0xE8F5E9) // Light green
+        : const Color(0xFFFFF3E0); // Light orange
+  }
+
   @override
   Widget build(BuildContext context) {
+    final statusColor = _getStatusColor();
+    final statusBgColor = _getStatusBgColor();
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: statusColor.withOpacity(0.3),
+          width: 2,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: statusBgColor,
+        ),
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
@@ -252,6 +277,25 @@ class _MaintenanceCard extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          item.status == 'completed' ? 'Done' : 'Pending',
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       Text(
                         _since(item.createdAt),
                         style: const TextStyle(

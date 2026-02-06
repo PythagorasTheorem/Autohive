@@ -229,8 +229,37 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   backgroundColor: kCyan,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: p.valid && !p.loading
+                onPressed: !p.loading
                     ? () async {
+                        // Validate name and dates
+                        if (nameCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter your full name'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+                        if (p.startDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please select a start date'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+                        if (p.endDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please select an end date'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+
                         // overlap check
                         if (await p.hasOverlap()) {
                           if (!mounted) return;
