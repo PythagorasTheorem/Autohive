@@ -41,14 +41,14 @@ class ValidationHelper {
     final cleanedValue = value.replaceAll(RegExp(r'\D'), '');
 
     if (cleanedValue.length != 8) {
-      return 'Invalid number';
+      return 'Phone number must be 8 digits';
     }
     if (!cleanedValue.startsWith('5')) {
-      return 'Invalid number';
+      return 'Phone number should start with 5';
     }
     // Check if all characters are digits
     if (!RegExp(r'^\d+$').hasMatch(cleanedValue)) {
-      return 'Invalid number';
+      return 'Phone number should contain only digits';
     }
     return null;
   }

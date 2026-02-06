@@ -107,7 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: kNavy,
+                    color: kCyan,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
