@@ -240,14 +240,11 @@ class _MaintenanceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: statusColor.withOpacity(0.3),
-          width: 2,
+          width: 1.5,
         ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: statusBgColor,
-        ),
+      color: statusBgColor,
+      child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
@@ -283,7 +280,7 @@ class _MaintenanceCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.2),
+                          color: statusColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
